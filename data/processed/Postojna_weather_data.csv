@@ -1,3 +1,4 @@
 datetime,temperature,relative_humidity,dew_point,surface_pressure,rain,snowfall,visibility
 2024-05-24 10:00:00,17.1,73,12.2,964.4,0.0,0.0,12620.0
 2024-05-24 15:00:00,20.1,52,9.9,963.6,0.0,0.0,24140.0
+2024-05-24 16:00:00,20.0,48,8.6,963.6,0.0,0.0,24140.0
