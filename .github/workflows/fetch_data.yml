@@ -1,0 +1,310 @@
+name: Fetch, process and merge data every 2 hours
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch_traffic_data:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+        
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Run fetch_traffic_data.py
+        run: |
+          poetry run python src/data/fetch_traffic_data.py
+          if [ $? -eq 0 ]; then
+            echo "fetch_traffic_data.py executed successfully."
+          else
+            echo "Error executing fetch_traffic_data.py"
+            exit 1
+          fi
+
+      - name: Push fetched traffic data to Github
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Fetching script (fetch traffic data)
+
+
+  fetch_fuel_data:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+        
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Run fetch_fuel_data.py
+        run: |
+          poetry run python src/data/fetch_fuel_data.py
+          if [ $? -eq 0 ]; then
+            echo "fetch_fuel_data.py executed successfully."
+          else
+            echo "Error executing fetch_fuel_data.py"
+            exit 1
+          fi
+
+      - name: Push fetched fuel data to Github
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Fetching script (fetch fuel data)
+
+          
+  preprocess_traffic_data:
+    needs: fetch_traffic_data
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Run preprocess_traffic_data.py
+        run: |
+          poetry run python src/data/preprocess_traffic_data.py
+          if [ $? -eq 0 ]; then
+            echo "preprocess_traffic_data.py executed successfully."
+          else
+            echo "Error executing preprocess_traffic_data.py"
+            exit 1
+          fi
+
+      - name: Push preprocessed traffic data to Github
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Fetching script (preprocess traffic data)
+
+
+  fetch_weather_data:
+    needs: preprocess_traffic_data
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'        
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Run fetch_weather_data.py
+        run: |
+          poetry run python src/data/fetch_weather_data.py
+          if [ $? -eq 0 ]; then
+            echo "fetch_weather_data.py executed successfully."
+          else
+            echo "Error executing fetch_weather_data.py"
+            exit 1
+          fi
+
+      - name: Push fetched weather data to Github
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Fetching script (fetch weather data)
+
+
+  preprocess_weather_data:
+    needs: fetch_weather_data
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+        
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Run preprocess_weather_data.py
+        run: |
+          poetry run python src/data/preprocess_weather_data.py
+          if [ $? -eq 0 ]; then
+            echo "preprocess_weather_data.py executed successfully."
+          else
+            echo "Error executing preprocess_weather_data.py"
+            exit 1
+          fi
+
+      - name: Push preprocessed weather data to Github
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Fetching script (preprocess weather data)
+
+
+  merge_processed_data:
+    needs: [preprocess_traffic_data, preprocess_weather_data]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Run merge_processed_data.py
+        run: |
+          poetry run python src/data/merge_processed_data.py
+          if [ $? -eq 0 ]; then
+            echo "merge_processed_data.py executed successfully."
+          else
+            echo "Error executing merge_processed_data.py"
+            exit 1
+          fi
+
+      - name: Push merged data to Github
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Fetching script (merge preprocessed data)
