@@ -1,0 +1,2 @@
+date,region,latitude,longitude,day_of_week,hour,season,fuel_price,holiday,temperature,relative_humidity,dew_point,surface_pressure,rain,snowfall,visibility,num_of_cars,avg_speed
+24-05-2024,Pomurska,46.52351975291412,16.44175950632071,Friday,10:00:00,Spring,1.495,None,19.9,64,12.9,999.1,0.0,0.0,24140.0,168,75

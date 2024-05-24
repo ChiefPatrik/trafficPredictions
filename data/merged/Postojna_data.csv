@@ -1,0 +1,2 @@
+date,region,latitude,longitude,day_of_week,hour,season,fuel_price,holiday,temperature,relative_humidity,dew_point,surface_pressure,rain,snowfall,visibility,num_of_cars,avg_speed
+24-05-2024,Postojna,45.93134443045748,14.270708378492923,Friday,10:00:00,Spring,1.495,None,17.1,73,12.2,964.4,0.0,0.0,12620.0,1416,123
