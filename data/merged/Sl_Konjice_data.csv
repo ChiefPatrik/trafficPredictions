@@ -1,3 +1,4 @@
 date,region,latitude,longitude,day_of_week,hour,season,fuel_price,holiday,temperature,relative_humidity,dew_point,surface_pressure,rain,snowfall,visibility,num_of_cars,avg_speed
 24-05-2024,Sl_Konjice,46.25413437290015,15.302557315050452,Friday,10:00:00,Spring,1.495,None,18.9,67,12.6,989.2,0.0,0.0,24140.0,780,103
 24-05-2024,Sl_Konjice,46.25413437290015,15.302557315050452,Friday,15:00:00,Spring,1.495,None,20.7,58,12.2,988.1,0.0,0.0,24140.0,876,95
+24-05-2024,Sl_Konjice,46.25413437290015,15.302557315050452,Friday,16:00:00,Spring,1.495,None,22.4,54,12.6,987.6,0.0,0.0,24140.0,744,96

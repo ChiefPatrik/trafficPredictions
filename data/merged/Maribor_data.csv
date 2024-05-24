@@ -1,3 +1,4 @@
 date,region,latitude,longitude,day_of_week,hour,season,fuel_price,holiday,temperature,relative_humidity,dew_point,surface_pressure,rain,snowfall,visibility,num_of_cars,avg_speed
 24-05-2024,Maribor,46.68255971126553,15.65138919777721,Friday,10:00:00,Spring,1.495,None,18.3,77,14.2,982.8,0.0,0.0,24140.0,408,83
 24-05-2024,Maribor,46.68255971126553,15.65138919777721,Friday,15:00:00,Spring,1.495,None,23.0,44,10.1,981.1,0.0,0.0,24140.0,432,86
+24-05-2024,Maribor,46.68255971126553,15.65138919777721,Friday,16:00:00,Spring,1.495,None,22.9,41,9.0,980.8,0.0,0.0,24140.0,444,84
