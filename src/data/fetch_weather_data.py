@@ -30,7 +30,7 @@ def get_traffic_coordinates():
             file_path = os.path.join(processed_data_path, file)
 
             df = pd.read_csv(file_path)
-            coordinates = df[['latitude', 'longitude']]
+            coordinates = df[['latitude', 'longitude']].tail(1)
             coordinates_collection = pd.concat([coordinates_collection, coordinates], ignore_index=True)
 
     return coordinates_collection
@@ -64,11 +64,11 @@ def get_closest_region(lat, lon):
 # Function to fetch weather data from Open-Meteo API
 def fetch_weather_data(coordinates): 
     coordinates_lat = ""
-    coordinates_lng = ""
+    coordinates_lng = ""    
 
     for _, coord in coordinates.iterrows():
-        coordinates_lat += "," + str(coord['latitude']) + ","
-        coordinates_lng += "," + str(coord['longitude']) + ","
+        coordinates_lat += str(coord['latitude']) + ","
+        coordinates_lng += str(coord['longitude']) + ","
     # Remove the last comma
     coordinates_lat = coordinates_lat.rstrip(',')
     coordinates_lng = coordinates_lng.rstrip(',')
