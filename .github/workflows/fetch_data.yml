@@ -10,78 +10,6 @@ env:
   NAP_PASSWORD: ${{ secrets.NAP_PASSWORD }}
   
 jobs:
-  fetch_traffic_data:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          ref: 'main'
-        
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
-      
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.12
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          poetry --version
-
-      - name: Install dependencies
-        run: |
-          poetry install
-
-      - name: Setup DVC
-        uses: iterative/setup-dvc@v1
-        with:
-          version: '3.48.4'
-
-      - name: Setup Dagshub
-        run: |
-          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
-          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
-          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
-
-      - name: Pull data
-        run: |
-          poetry run dvc pull -r origin
-
-      - name: Run fetch_traffic_data.py
-        run: |
-          poetry run python src/data/fetch_traffic_data.py
-          if [ $? -eq 0 ]; then
-            echo "fetch_traffic_data.py executed successfully."
-          else
-            echo "Error executing fetch_traffic_data.py"
-            exit 1
-          fi
-
-      - name: Add data to DVC
-        run: |
-          poetry run dvc add data
-
-      - name: DVC push
-        run: |
-          poetry run dvc push -r origin    
-
-      - name: Push fetched traffic data to DagsHub
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: Update DVC data (fetch traffic data)
-
   fetch_fuel_data:
     runs-on: ubuntu-latest
 
@@ -153,7 +81,80 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Update DVC data (fetch fuel data)
-       
+
+  fetch_traffic_data:
+    needs: fetch_fuel_data
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+        
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
+      - name: Run fetch_traffic_data.py
+        run: |
+          poetry run python src/data/fetch_traffic_data.py
+          if [ $? -eq 0 ]; then
+            echo "fetch_traffic_data.py executed successfully."
+          else
+            echo "Error executing fetch_traffic_data.py"
+            exit 1
+          fi
+
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin    
+
+      - name: Push fetched traffic data to DagsHub
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update DVC data (fetch traffic data)
+ 
   preprocess_traffic_data:
     needs: fetch_traffic_data
     runs-on: ubuntu-latest
@@ -374,7 +375,7 @@ jobs:
           commit_message: Update DVC data (preprocess weather data)
 
   merge_processed_data:
-    needs: [fetch_fuel_data, preprocess_traffic_data, preprocess_weather_data]
+    needs: preprocess_weather_data
     runs-on: ubuntu-latest
 
     permissions:
