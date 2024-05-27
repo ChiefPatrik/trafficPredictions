@@ -44,6 +44,21 @@ jobs:
         run: |
           poetry install
 
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
       - name: Run fetch_traffic_data.py
         run: |
           poetry run python src/data/fetch_traffic_data.py
@@ -54,11 +69,18 @@ jobs:
             exit 1
           fi
 
-      - name: Push fetched traffic data to Github
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin    
+
+      - name: Push fetched traffic data to DagsHub
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Fetching script (fetch traffic data)
-
+          commit_message: Update DVC data (fetch traffic data)
 
   fetch_fuel_data:
     runs-on: ubuntu-latest
@@ -94,6 +116,21 @@ jobs:
         run: |
           poetry install
 
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
       - name: Run fetch_fuel_data.py
         run: |
           poetry run python src/data/fetch_fuel_data.py
@@ -104,12 +141,19 @@ jobs:
             exit 1
           fi
 
-      - name: Push fetched fuel data to Github
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin    
+
+      - name: Push fetched fuel data to DagsHub
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Fetching script (fetch fuel data)
-
-          
+          commit_message: Update DVC data (fetch fuel data)
+       
   preprocess_traffic_data:
     needs: fetch_traffic_data
     runs-on: ubuntu-latest
@@ -145,6 +189,21 @@ jobs:
         run: |
           poetry install
 
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
       - name: Run preprocess_traffic_data.py
         run: |
           poetry run python src/data/preprocess_traffic_data.py
@@ -155,11 +214,18 @@ jobs:
             exit 1
           fi
 
-      - name: Push preprocessed traffic data to Github
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin    
+
+      - name: Push preprocessed traffic data to DagsHub
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Fetching script (preprocess traffic data)
-
+          commit_message: Update DVC data (preprocessed traffic data)
 
   fetch_weather_data:
     needs: preprocess_traffic_data
@@ -196,6 +262,21 @@ jobs:
         run: |
           poetry install
 
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
       - name: Run fetch_weather_data.py
         run: |
           poetry run python src/data/fetch_weather_data.py
@@ -206,11 +287,18 @@ jobs:
             exit 1
           fi
 
-      - name: Push fetched weather data to Github
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin    
+
+      - name: Push fetched weather data to DagsHub
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Fetching script (fetch weather data)
-
+          commit_message: Update DVC data (fetch weather data)
 
   preprocess_weather_data:
     needs: fetch_weather_data
@@ -247,6 +335,21 @@ jobs:
         run: |
           poetry install
 
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
       - name: Run preprocess_weather_data.py
         run: |
           poetry run python src/data/preprocess_weather_data.py
@@ -257,14 +360,21 @@ jobs:
             exit 1
           fi
 
-      - name: Push preprocessed weather data to Github
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin    
+
+      - name: Push preprocessed weather data to DagsHub
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Fetching script (preprocess weather data)
-
+          commit_message: Update DVC data (preprocess weather data)
 
   merge_processed_data:
-    needs: [preprocess_traffic_data, preprocess_weather_data]
+    needs: [fetch_fuel_data, preprocess_traffic_data, preprocess_weather_data]
     runs-on: ubuntu-latest
 
     permissions:
@@ -298,6 +408,21 @@ jobs:
         run: |
           poetry install
 
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
       - name: Run merge_processed_data.py
         run: |
           poetry run python src/data/merge_processed_data.py
@@ -308,7 +433,15 @@ jobs:
             exit 1
           fi
 
-      - name: Push merged data to Github
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin    
+
+      - name: Push merged data to DagsHub
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Fetching script (merge preprocessed data)
+          commit_message: Update DVC data (merge processed data)
