@@ -1,5 +1,5 @@
 {
-    "count": 515,
+    "count": 514,
     "next": "https://goriva.si/api/v1/search/?franchise=&name=&o=price_95&page=3&position=Ljubljana&radius=",
     "previous": "https://goriva.si/api/v1/search/?franchise=&name=&o=price_95&position=Ljubljana&radius=",
     "results": [
@@ -422,28 +422,6 @@
             "zip_code": "1352"
         },
         {
-            "pk": 2062,
-            "franchise": 1,
-            "name": "PETROL DOM\u017dALE - LJUBLJANSKA",
-            "address": "LJUBLJANSKA CESTA 2",
-            "lat": 46.13555764,
-            "lng": 14.58035495,
-            "prices": {
-                "95": 1.495,
-                "dizel": 1.462,
-                "98": null,
-                "100": 1.755,
-                "dizel-premium": null,
-                "avtoplin-lpg": null,
-                "KOEL": 1.103,
-                "hvo": null
-            },
-            "distance": 11068.429929818909,
-            "direction": "",
-            "open_hours": "vsak delavnik 06:00-20:00\r\nsobote 07:00-20:00\r\nnedelje in prazniki 08:00-12:00",
-            "zip_code": "1230"
-        },
-        {
             "pk": 2131,
             "franchise": 1,
             "name": "PETROL \u0160KOFLJICA - PIJAVA GORICA",
@@ -552,6 +530,28 @@
             "direction": "",
             "open_hours": "Pon-Sob; 5-23h \r\nNedelja: 8-20h",
             "zip_code": "1270"
+        },
+        {
+            "pk": 779,
+            "franchise": 4,
+            "name": "BS MOL DOL PRI LJUBLJANI",
+            "address": "Podgora pri Dolskem 40",
+            "lat": 46.090168,
+            "lng": 14.650805,
+            "prices": {
+                "95": 1.495,
+                "dizel": 1.462,
+                "98": null,
+                "100": 1.755,
+                "dizel-premium": null,
+                "avtoplin-lpg": null,
+                "KOEL": 1.103,
+                "hvo": null
+            },
+            "distance": 11963.097393015869,
+            "direction": "",
+            "open_hours": "Pon-Ned 05:00-22:00",
+            "zip_code": "1262"
         }
     ],
     "position": {
