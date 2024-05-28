@@ -446,3 +446,226 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Update DVC data (merge processed data)
+
+  validate_data:
+    needs: merge_processed_data
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
+      - name: Validate data
+        run: |
+          poetry run python gx/run_trafficCheckpoint.py
+          if [ $? -eq 0 ]; then
+            echo "run_trafficCheckpoint.py executed successfully."
+          else
+            echo "Error executing run_trafficCheckpoint.py"
+            exit 1
+          fi
+
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin
+
+      - name: Push validated data to DagsHub
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Data validation
+
+  test_data:
+    needs: validate_data
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
+      - name: Test data
+        run: |
+          poetry run python src/data/evidently_test.py
+          if [ $? -eq 0 ]; then
+            echo "evidently_test.py executed successfully."
+          else
+            echo "Error executing evidently_test.py"
+            exit 1
+          fi
+
+      - name: Update reference data
+        run: |
+          cp data/merged/Maribor_data.csv data/merged/reference_data.csv
+
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin
+
+      - name: Push tested data to DagsHub
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Test data
+
+  split_data:
+    needs: test_data
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
+      - name: Split data
+        run: |
+          poetry run python src/data/split_data.py
+          if [ $? -eq 0 ]; then
+            echo "split_data.py executed successfully."
+          else
+            echo "Error executing split_data.py"
+            exit 1
+          fi
+
+      - name: Add data to DVC
+        run: |
+          poetry run dvc add data
+
+      - name: DVC push
+        run: |
+          poetry run dvc push -r origin
+
+      - name: Push merged data to DagsHub
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update DVC data (split data)
