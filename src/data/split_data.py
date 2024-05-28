@@ -15,8 +15,7 @@ for filename in os.listdir(merged_data_path):
         # Split the DataFrame into train and test sets
         train, test = train_test_split(df, test_size=0.1, random_state=1234)
 
-        # Define the base of the filename (without extension and up until '_')
-        base_filename = filename.split('.')[0].split('_')[0]
+        base_filename = filename[:-9]    # Remove '_data.csv' (9 characters)
 
         # Save the train set as 'X_train.csv' and the test set as 'X_test.csv'
         train.to_csv(os.path.join(merged_data_path, f'{base_filename}_train.csv'), index=False)
