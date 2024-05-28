@@ -9,6 +9,8 @@ merged_data_path = os.path.join(data_dir, 'merged')
 # Iterate over all files in merged directory
 for filename in os.listdir(merged_data_path):
     if filename.endswith('_data.csv'):
+        if(filename == 'reference_data.csv'):
+            continue
         # Read the file into a DataFrame
         df = pd.read_csv(os.path.join(merged_data_path, filename))
 
