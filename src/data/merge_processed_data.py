@@ -38,7 +38,7 @@ def get_season_day_hour(date_str):
     elif 6 <= month <= 8:
         season = "Summer"
     elif 9 <= month <= 11:
-        season = "Autumn"
+        season = "Fall"
     else:
         season = "Winter"
 
@@ -153,58 +153,7 @@ def merge_data(fuel_data):
             save_merged_data(merged_row, merged_file_name) 
 
     print("Data merged to CSV files successfully!")
-
-    # merged_data_filepath = os.path.join(merged_data_path, f"station{station_number}_data.csv") 
-    # with open(station_data_filepath, mode='r', encoding='utf-8') as station_file, \
-    #      open(weather_data_filepath, mode='r', encoding='utf-8') as weather_file, \
-    #      open(merged_data_filepath, mode='a', newline='', encoding='utf-8') as merged_file:
-        
-    #     station_reader = csv.DictReader(station_file)
-    #     weather_reader = csv.DictReader(weather_file)
-        
-    #     merged_fieldnames = ['number', 
-    #                          'datetime',
-    #                          'name',
-    #                          'address',
-    #                          'coordinates', 
-    #                          'temperature', 
-    #                          'relative_humidity', 
-    #                          'dew_point', 
-    #                          'apparent_temperature', 
-    #                          'precipitation_probability', 
-    #                          'rain', 
-    #                          'surface_pressure',
-    #                          'bike_stands', 
-    #                          'available_bike_stands'
-    #                          ]
-    #     merged_writer = csv.DictWriter(merged_file, fieldnames=merged_fieldnames)
-    #     #merged_writer.writeheader()     # Header row with fieldnames
-             
-    #     last_station_row = None
-    #     for station_row in station_reader:
-    #         last_station_row = station_row
-        
-    #     last_weather_row = None
-    #     for weather_row in weather_reader:
-    #         last_weather_row = weather_row
-
-    #     merged_row = {
-    #         'number': last_station_row['number'],
-    #         'datetime': last_weather_row['datetime'],
-    #         'name': last_station_row['name'],
-    #         'address': last_station_row['address'],
-    #         'coordinates': last_station_row['coordinates'],
-    #         'temperature': last_weather_row['temperature'],
-    #         'relative_humidity': last_weather_row['relative_humidity'],
-    #         'dew_point': last_weather_row['dew_point'],
-    #         'apparent_temperature': last_weather_row['apparent_temperature'],
-    #         'precipitation_probability': last_weather_row['precipitation_probability'],
-    #         'rain': last_weather_row['rain'],
-    #         'surface_pressure': last_weather_row['surface_pressure'],
-    #         'bike_stands': last_station_row['bike_stands'],
-    #         'available_bike_stands': last_station_row['available_bike_stands']
-    #     }
-    #     merged_writer.writerow(merged_row)
+    
 
 def main():
     fuel_json_filename = "raw_fuel_data.json"

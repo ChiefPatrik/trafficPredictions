@@ -15,9 +15,14 @@ for filename in os.listdir(merged_data_path):
         df = pd.read_csv(os.path.join(merged_data_path, filename))
 
         # Split the DataFrame into train and test sets
-        train, test = train_test_split(df, test_size=0.1, random_state=1234)
+        train, test = train_test_split(df, test_size=0.2, random_state=1234)
 
         base_filename = filename[:-9]    # Remove '_data.csv' (9 characters)
+
+        if train['holiday'].isnull().all():
+            train['holiday'].fillna('None', inplace=True)
+        if test['holiday'].isnull().all():
+            test['holiday'].fillna('None', inplace=True)
 
         # Save the train set as 'X_train.csv' and the test set as 'X_test.csv'
         train.to_csv(os.path.join(merged_data_path, f'{base_filename}_train.csv'), index=False)

@@ -1,0 +1,105 @@
+name: Train and evaluate models
+
+on:
+  workflow_run:
+    workflows: ["Fetch, process and merge data every 2 hours"]
+    types:
+      - completed
+  workflow_dispatch:
+  
+env:
+  MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+  MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+  MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+
+jobs:
+  train_models:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      # Checkout the repository and set up the Python environment
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      - name: Install dependencies
+        run: |
+          if [ -d ~/.cache/pypoetry ]; then
+            echo "Using cached dependencies"
+          else
+            poetry install
+          fi
+
+      # Set up DVC and Dagshub
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+        with:
+          version: '3.48.4'
+
+      - name: Setup Dagshub
+        run: |
+          poetry run dvc remote modify origin endpointurl https://dagshub.com/patrik.praprotnik/trafficPredictions.s3
+          poetry run dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          poetry run dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      # Pull the data from DagsHub and run the scripts on fresh data
+      - name: Pull data
+        run: |
+          poetry run dvc pull -r origin
+
+      - name: Run train_cars_models.py
+        run: |
+          poetry run python src/models/train_cars_models.py
+          if [ $? -eq 0 ]; then
+            echo "train_cars_models.py executed successfully."
+          else
+            echo "Error executing train_cars_models.py"
+            exit 1
+          fi
+
+      - name: Run train_speed_models.py
+        run: |
+          poetry run python src/models/train_speed_models.py
+          if [ $? -eq 0 ]; then
+            echo "train_speed_models.py executed successfully."
+          else
+            echo "Error executing train_speed_models.py"
+            exit 1
+          fi
+
+      - name: Run evaluate_models.py
+        run: |
+          poetry run python src/models/evaluate_models.py
+          if [ $? -eq 0 ]; then
+            echo "evaluate_models.py executed successfully."
+          else
+            echo "Error executing evaluate_models.py"
+            exit 1
+          fi
+
+      - name: Push models and metrics to GitHub
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Push trained models and test metrics to GitHub

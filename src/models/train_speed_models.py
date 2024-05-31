@@ -42,7 +42,6 @@ region_mapping = {
     'Vransko': 7
 }
 
-
 # Define all possible categories for categorical columns
 day_of_week_categories = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 season_categories = ['Spring', 'Summer', 'Fall', 'Winter']
@@ -63,7 +62,7 @@ def preprocess_holiday_column(df, column_name='holiday'):
     df[column_name] = df[column_name].apply(lambda x: 1 if x == 'None' else 0)
     return df
 
-def process_data(df):
+def process_data(df): 
     # Encode categorical columns
     # df = pd.get_dummies(df, columns=['day_of_week', 'season', 'holiday'])    
     df = get_dummies_with_all_categories(df, ['day_of_week', 'season'])
@@ -94,28 +93,10 @@ def process_data(df):
 
     # print(df.dtypes)
     # print(df.head())
-    # df.to_csv("processed_dataset.csv", index=False)
     return df
 
 
 def build_model(input_dim):
-    # model = Sequential()
-    # model.add(Dense(128, input_dim=input_dim, activation='relu'))
-    # model.add(BatchNormalization())
-    # model.add(Dropout(0.3))
-    
-    # model.add(Dense(64, activation='relu'))
-    # model.add(BatchNormalization())
-    # model.add(Dropout(0.3))
-    
-    # model.add(Dense(32, activation='relu'))
-    # model.add(BatchNormalization())
-    # model.add(Dropout(0.3))
-    
-    # model.add(Dense(1, activation='linear'))
-    
-    # model.compile(optimizer='adam', loss='mse', metrics=['mae', 'mse'])
-
     inputs = tf.keras.Input(shape=(input_dim,))
     x = Dense(128, activation='relu')(inputs)
     x = BatchNormalization()(x)
@@ -132,21 +113,21 @@ def build_model(input_dim):
     outputs = Dense(1, activation='linear')(x)
     
     model = Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer=Adam(learning_rate=0.01), loss='mse', metrics=['mae', 'mse']) 
     
+    model.compile(optimizer=Adam(learning_rate=0.01), loss='mse', metrics=['mae', 'mse'])
     return model
 
 # Function for saving the model and scalers to file
 def save_model_scalers(region_name, model, features_scaler, target_scaler):
-    save_dir = os.path.join(models_dir, region_name, "cars")
+    save_dir = os.path.join(models_dir, region_name, "speed")
     # Check if the directory exists, if not, create it
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    onnx.save_model(model, os.path.join(save_dir, f'{region_name}_cars_model.onnx'))
-    joblib.dump(target_scaler, os.path.join(save_dir, f'{region_name}_cars_target_scaler.pkl'))
-    joblib.dump(features_scaler, os.path.join(save_dir, f'{region_name}_cars_features_scaler.pkl'))
-    print(f'<Cars> Model and scalers for {region_name} saved successfully!')
+    onnx.save_model(model, os.path.join(save_dir, f'{region_name}_speed_model.onnx'))
+    joblib.dump(target_scaler, os.path.join(save_dir, f'{region_name}_speed_target_scaler.pkl'))
+    joblib.dump(features_scaler, os.path.join(save_dir, f'{region_name}_speed_features_scaler.pkl'))
+    print(f'<Speed> Model and scalers for {region_name} saved successfully!')
 
 # Function for saving scalers to MLflow
 def mlflow_save_scaler(client, scaler_name, scaler, region_name, stage_param="Staging"):
@@ -183,10 +164,10 @@ def get_metric_from_run(client, run_id, metric_name):
 
 def train_model(region_name, traffic_df, client):
     traffic_df = process_data(traffic_df)
-    
+
     # Define the target and features
-    target = 'num_of_cars' 
-    features = traffic_df.drop(columns=[target, 'latitude', 'longitude', 'avg_speed'])  
+    target = 'avg_speed' 
+    features = traffic_df.drop(columns=[target, 'latitude', 'longitude'])  
 
     # Normalize data
     features_scaler = MinMaxScaler()
@@ -201,11 +182,11 @@ def train_model(region_name, traffic_df, client):
     # Split the data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
 
-    experiment_name = f"{region_name}_train_cars_exp"
-    model_name = f"{region_name}_cars_model"
+    experiment_name = f"{region_name}_train_speed_exp"
+    model_name = f"{region_name}_speed_model"
     mlflow.set_experiment(experiment_name)
 
-    with mlflow.start_run(run_name=f"{region_name}_train_cars_run"):
+    with mlflow.start_run(run_name=f"{region_name}_train_speed_run"):
         mlflow.autolog()
         run_id = mlflow.active_run().info.run_id    # For versioning mlflow models
 
@@ -223,29 +204,10 @@ def train_model(region_name, traffic_df, client):
         input_signature = [
             tf.TensorSpec(shape=(None, X_train.shape[1]), dtype=tf.float32, name="input")
         ]
-        onnx_model, _ = tf2onnx.convert.from_keras(model=model, input_signature=input_signature, opset=13)  
+        onnx_model, _ = tf2onnx.convert.from_keras(model=model, input_signature=input_signature, opset=13)
         
         save_model_scalers(region_name, onnx_model, features_scaler, target_scaler)
-
-        # onnx.save_model(onnx_model, os.path.join(models_dir, region_name, "cars", "cars_model_first.onnx"))
-        # onnx_model = rt.InferenceSession(os.path.join(models_dir, region_name, "cars", "cars_model_first.onnx"))
         
-        # # Inspect the input and output names of the ONNX model
-        # input_names = [input.name for input in onnx_model.get_inputs()]
-        # output_names = [output.name for output in onnx_model.get_outputs()]
-        # print("Input names:", input_names)
-        # print("Output names:", output_names)
-        # # Use the correct input name for predictions
-        # input_name = input_names[0]  # Assuming the first input is the one we want
-        # output_name = output_names[0]  # Assuming the first output is the one we want
-        # # Run the model prediction
-        # pred_onx = onnx_model.run([output_name], {input_name: X_test.astype(np.float32)})[0]      
-
-        # input_name = onnx_model.get_inputs()[0].name
-        # output_name = onnx_model.get_outputs()[0].name
-        # pred_onx = onnx_model.run([output_name], {input_name: X_test.astype(np.float32)})[0]
-        # print("ONNX model prediction: ", pred_onx[:5])
-
         # Log the model to MLflow
         registered_model = mlflow.onnx.log_model(onnx_model=onnx_model, 
                                 artifact_path=f"models/{region_name}/model", 
@@ -275,8 +237,8 @@ def train_model(region_name, traffic_df, client):
                         version=model_version.version,
                         stage="Production"
                     )
-                    mlflow_save_scaler(client, "cars_target_scaler", target_scaler, region_name, "Production")
-                    mlflow_save_scaler(client, "cars_features_scaler", features_scaler, region_name, "Production")
+                    mlflow_save_scaler(client, "speed_target_scaler", target_scaler, region_name, "Production")
+                    mlflow_save_scaler(client, "speed_features_scaler", features_scaler, region_name, "Production")
                 else:
                     print("Current model is not better than the production model. Transitioning to staging.")
                     client.transition_model_version_stage(
@@ -284,8 +246,8 @@ def train_model(region_name, traffic_df, client):
                         version=model_version.version,
                         stage="Staging"
                     )
-                    mlflow_save_scaler(client, "cars_target_scaler", target_scaler, region_name, "Staging")
-                    mlflow_save_scaler(client, "cars_features_scaler", features_scaler, region_name, "Staging")
+                    mlflow_save_scaler(client, "speed_target_scaler", target_scaler, region_name, "Staging")
+                    mlflow_save_scaler(client, "speed_features_scaler", features_scaler, region_name, "Staging")
             else:
                 print("No production model found. Transitioning current model to production.")
                 client.transition_model_version_stage(
@@ -293,8 +255,8 @@ def train_model(region_name, traffic_df, client):
                     version=model_version.version,
                     stage="Production"
                 )
-                mlflow_save_scaler(client, "cars_target_scaler", target_scaler, region_name, "Production")
-                mlflow_save_scaler(client, "cars_features_scaler", features_scaler, region_name, "Production")
+                mlflow_save_scaler(client, "speed_target_scaler", target_scaler, region_name, "Production")
+                mlflow_save_scaler(client, "speed_features_scaler", features_scaler, region_name, "Production")
         except Exception as e:
             print(f"Error while comparing models: {e}")
             print("Transitioning current model to staging.")
@@ -303,8 +265,8 @@ def train_model(region_name, traffic_df, client):
                 version=model_version.version,
                 stage="Staging"
             )
-            mlflow_save_scaler(client, "cars_target_scaler", target_scaler, region_name, "Staging")
-            mlflow_save_scaler(client, "cars_features_scaler", features_scaler, region_name, "Staging")
+            mlflow_save_scaler(client, "speed_target_scaler", target_scaler, region_name, "Staging")
+            mlflow_save_scaler(client, "speed_features_scaler", features_scaler, region_name, "Staging")
 
     mlflow.end_run()
 
@@ -323,15 +285,7 @@ def main():
 
             # Build and train the model for the region
             train_model(region_name, traffic_df, client)
-
-    # for region in region_mapping.keys():
-    #     client.delete_registered_model(name=f"{region}_cars_model")
-    #     client.delete_registered_model(name=f"{region}_cars_features_scaler")
-    #     client.delete_registered_model(name=f"{region}_cars_target_scaler")
-    #     client.delete_registered_model(name=f"{region}_speed_model")
-    #     client.delete_registered_model(name=f"{region}_speed_features_scaler")
-    #     client.delete_registered_model(name=f"{region}_speed_target_scaler")
-
+            
 
 
 if __name__ == '__main__':
