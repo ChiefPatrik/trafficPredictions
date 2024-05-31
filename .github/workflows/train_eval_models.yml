@@ -67,7 +67,7 @@ jobs:
 
       - name: Run train_cars_models.py
         run: |
-          python src/models/train_cars_models.py
+          poetry run python src/models/train_cars_models.py
           if [ $? -eq 0 ]; then
             echo "train_cars_models.py executed successfully."
           else
@@ -77,7 +77,7 @@ jobs:
 
       - name: Run train_speed_models.py
         run: |
-          python src/models/train_speed_models.py
+          poetry run python src/models/train_speed_models.py
           if [ $? -eq 0 ]; then
             echo "train_speed_models.py executed successfully."
           else
@@ -87,7 +87,7 @@ jobs:
 
       - name: Run evaluate_models.py
         run: |
-          python src/models/evaluate_models.py
+          poetry run python src/models/evaluate_models.py
           if [ $? -eq 0 ]; then
             echo "evaluate_models.py executed successfully."
           else

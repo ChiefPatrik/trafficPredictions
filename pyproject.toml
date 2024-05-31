@@ -24,6 +24,7 @@ tensorflow-io-gcs-filesystem = "~0.31.0"
 tf2onnx = "^1.16.1"
 onnxruntime = "^1.18.0"
 onnx = "^1.16.1"
+tensorflow = "^2.16.1"
 
 
 [tool.poetry.group.dev.dependencies]
