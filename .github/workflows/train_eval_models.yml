@@ -46,11 +46,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ -d ~/.cache/pypoetry ]; then
-            echo "Using cached dependencies"
-          else
-            poetry install
-          fi
+          poetry install
 
       # Set up DVC and Dagshub
       - name: Setup DVC
