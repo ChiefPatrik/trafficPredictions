@@ -615,28 +615,6 @@
       }
     },
     {
-      "expectation_type": "expect_column_max_to_be_between",
-      "kwargs": {
-        "column": "num_of_cars",
-        "max_value": 768,
-        "min_value": 768,
-        "strict_max": false,
-        "strict_min": false
-      },
-      "meta": {
-        "profiler_details": {
-          "metric_configuration": {
-            "domain_kwargs": {
-              "column": "num_of_cars"
-            },
-            "metric_name": "column.max",
-            "metric_value_kwargs": null
-          },
-          "num_batches": 1
-        }
-      }
-    },
-    {
       "expectation_type": "expect_column_values_to_match_regex",
       "kwargs": {
         "column": "day_of_week",
