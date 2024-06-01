@@ -5,6 +5,7 @@ on:
     workflows: ["Fetch, process and merge data every 2 hours"]
     types:
       - completed
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
   workflow_dispatch:
   
 env:
@@ -46,7 +47,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC

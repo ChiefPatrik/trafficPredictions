@@ -24,6 +24,7 @@ jobs:
           ref: 'main'
         
       - name: Cache dependencies
+        id: cache-poetry-deps
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
@@ -43,7 +44,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC
@@ -101,6 +107,7 @@ jobs:
           ref: 'main'
         
       - name: Cache dependencies
+        id: cache-poetry-deps
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
@@ -120,7 +127,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC
@@ -178,6 +190,7 @@ jobs:
           ref: 'main'
           
       - name: Cache dependencies
+        id: cache-poetry-deps
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
@@ -197,7 +210,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC
@@ -255,6 +273,7 @@ jobs:
           ref: 'main'        
 
       - name: Cache dependencies
+        id: cache-poetry-deps
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
@@ -274,7 +293,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC
@@ -332,6 +356,7 @@ jobs:
           ref: 'main'
         
       - name: Cache dependencies
+        id: cache-poetry-deps
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
@@ -351,7 +376,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC
@@ -409,6 +439,7 @@ jobs:
           ref: 'main'
           
       - name: Cache dependencies
+        id: cache-poetry-deps
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
@@ -428,7 +459,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC
@@ -486,6 +522,7 @@ jobs:
           ref: 'main'
           
       - name: Cache dependencies
+        id: cache-poetry-deps
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
@@ -505,7 +542,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC
@@ -563,6 +605,7 @@ jobs:
           ref: 'main'
           
       - name: Cache dependencies
+        id: cache-poetry-deps
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
@@ -582,7 +625,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC
@@ -644,6 +692,7 @@ jobs:
           ref: 'main'
           
       - name: Cache dependencies
+        id: cache-poetry-deps
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
@@ -663,7 +712,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install
+          if [ -d "~/.cache/pypoetry" ]; then
+            echo "Using cached dependencies"
+          else
+            echo "Installing dependencies"
+            poetry install
+          fi
 
       # Set up DVC and Dagshub
       - name: Setup DVC
