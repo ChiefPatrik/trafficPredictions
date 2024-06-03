@@ -25,6 +25,11 @@ dagshub.auth.add_app_token(token=mlflow_password)
 dagshub.init(repo_owner=mlflow_username, repo_name='trafficPredictions', mlflow=True)
 mlflow.set_tracking_uri(mlflow_uri)
 
+
+# ======================================
+# DATA PROCESSING FUNCTIONS
+# ======================================
+
 # Region names to numbers mapping
 region_mapping = {
     'Kozina': 1,
@@ -36,14 +41,10 @@ region_mapping = {
     'Vransko': 7
 }
 
-# Define all possible categories for categorical columns
-day_of_week_categories = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-season_categories = ['Spring', 'Summer', 'Fall', 'Winter']
-
-# Define the categories for each column
+# Categories values for selected columns
 categories_dict = {
-    'day_of_week': day_of_week_categories,
-    'season': season_categories,
+    'day_of_week': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    'season': ['Spring', 'Summer', 'Fall', 'Winter'],
 }
 
 # Function to get dummies with specified categories
@@ -52,10 +53,12 @@ def get_dummies_with_all_categories(df, columns):
         df[column] = pd.Categorical(df[column], categories=categories_dict[column])
     return pd.get_dummies(df, columns=columns)
 
+# Function to convert holiday values to binary
 def preprocess_holiday_column(df, column_name='holiday'):
     df[column_name] = df[column_name].apply(lambda x: 1 if x == 'None' else 0)
     return df
 
+# Function to process data same way it was processed during training
 def process_data(df):
     # Encode categorical columns
     # df = pd.get_dummies(df, columns=['day_of_week', 'season', 'holiday'])    
@@ -89,6 +92,13 @@ def process_data(df):
     # print(df.head())
     return df
 
+
+
+# ===========================================
+# DOWNLOADING, LOADING AND SAVING FUNCTIONS
+# ===========================================
+
+# Function to load test data for a specific region
 def load_test_data(region_name):
     test_file = os.path.join(merged_data_dir, f"{region_name}_test.csv")
     if os.path.exists(test_file):
@@ -96,7 +106,8 @@ def load_test_data(region_name):
     else:
         print(f"Test data file not found for {region_name}")
         return None
-    
+
+# Function to save evaluation metrics to a CSV file    
 def save_data(model_type, region, mse, mae, ev):
     report_dir = os.path.join(reports_dir, region)
     report_file = os.path.join(report_dir, f"{model_type}_evaluation_report.csv")
@@ -121,8 +132,6 @@ def save_data(model_type, region, mse, mae, ev):
     
     print(f"Metrics for model '{model_type}' for {region} saved successfully!\n")
 
-
-
 # Function for downloading models and scalers from MLflow
 def download_models():
     mlflowClient = MlflowClient()
@@ -144,6 +153,7 @@ def download_models():
     
     print("All models downloaded and saved locally!")
 
+# Function for loading model and scalers from local files
 def load_model_and_scalers(model_dir, region, model_type):
     model_path = os.path.join(model_dir, f"{region}_{model_type}_model.onnx")
     target_scaler_path = os.path.join(model_dir, f"{region}_{model_type}_target_scaler.pkl")
@@ -179,6 +189,11 @@ def load_model_and_scalers(model_dir, region, model_type):
 
     return model, target_scaler, features_scaler
 
+
+
+# ===========================================
+# EVALUATION FUNCTIONS
+# ===========================================
 
 def evaluate_model(model, target_scaler, features_scaler, test_data, model_type, region):
     test_data = process_data(test_data)
@@ -219,7 +234,6 @@ def evaluate_model(model, target_scaler, features_scaler, test_data, model_type,
     mlflow.end_run()
     return mse, mae, ev
 
-
 def evaluate_all_models():
     for region in os.listdir(models_dir):
         region_dir = os.path.join(models_dir, region)
@@ -237,6 +251,7 @@ def evaluate_all_models():
                 else:
                     print(f"Model directory not found: {model_dir}")
 
+
 if __name__ == "__main__":
-    #download_models()
+    download_models()
     evaluate_all_models()
