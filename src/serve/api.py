@@ -33,16 +33,16 @@ load_dotenv()
 mlflow_username = os.getenv("MLFLOW_TRACKING_USERNAME")
 mlflow_password = os.getenv("MLFLOW_TRACKING_PASSWORD")
 mlflow_uri = os.getenv("MLFLOW_TRACKING_URI")
-# mongo_username = os.getenv("MONGO_USERNAME")
-# mongo_password = os.getenv("MONGO_PASSWORD")
+mongo_username = os.getenv("MONGO_USERNAME")
+mongo_password = os.getenv("MONGO_PASSWORD")
 
 dagshub.auth.add_app_token(token=mlflow_password)
-dagshub.init(repo_owner=mlflow_username, repo_name='mBikePredictions', mlflow=True)
+dagshub.init(repo_owner=mlflow_username, repo_name='trafficPredictions', mlflow=True)
 mlflow.set_tracking_uri(mlflow_uri)
 
-# db_name = "trafficInputData"
-# connection_string = f"mongodb+srv://{mongo_username}:{mongo_password}@cluster0.v3fli1i.mongodb.net/"
-# client = MongoClient(connection_string)
+db_name = "trafficInputData"
+connection_string = f"mongodb+srv://{mongo_username}:{mongo_password}@cluster0.ygb5z8f.mongodb.net/"
+client = MongoClient(connection_string)
 
 
 # ======================================
@@ -294,19 +294,22 @@ def load_model_and_scalers(region, model_type):
     return model, target_scaler, features_scaler
 
 # Function for saving input data to MongoDB    
-# def save_to_mongodb(first_prediction_datetime, station_number, predicted_values): 
-#     db = client.get_database(db_name)  
-#     collection = db["inputDatasets"]
+def save_to_mongodb(region, date, hour, num_of_cars, avg_speed): 
+    db = client.get_database(db_name)  
+    collection = db["trafficPredictions"]
     
-#     # Convert the DataFrame to a list of dictionaries for insertion into MongoDB
-#     data_dict = {
-#         "datetime": first_prediction_datetime,
-#         "station_number": station_number,
-#         "predicted_values": predicted_values
-#     }
-    
-#     collection.insert_one(data_dict)
-#     print("Input data saved to MongoDB!")
+    # Convert the DataFrame to a list of dictionaries for insertion into MongoDB
+    data_dict = {
+        "region": region,
+        "date": date,
+        "hour": hour,
+        "num_of_cars": num_of_cars,
+        "avg_speed": avg_speed
+    }
+    print("Input data to save to MongoDB:", data_dict)
+
+    collection.insert_one(data_dict)
+    print("Input data saved to MongoDB!")
 
 
 # ======================================
@@ -345,11 +348,12 @@ def predict_speed(cars_input, region, num_of_cars):
     return y_pred[0]
 
 def predict(region, date, hour):
-    print("Predicting traffic for region", region, "at datetime:", date, hour)
+    print("Predicting traffic for", region, "on", date, "at", hour)
     # Construct and preprocess the prediction input
     cars_input = construct_prediction_input(region, date, hour)
     cars_input_df = pd.DataFrame([cars_input])
-    
+    formated_date = cars_input_df["date"][0]
+
     # Process the input data same way it was processed during training
     cars_input_df = process_data(cars_input_df)
 
@@ -358,7 +362,7 @@ def predict(region, date, hour):
     print("Predicted number of cars:", num_of_cars)
     print("Predicted average speed:", avg_speed)
 
-    return round(num_of_cars[0]), round(avg_speed[0])
+    return round(num_of_cars[0]), round(avg_speed[0]), formated_date
 
 
 # ======================================
@@ -390,16 +394,17 @@ async def predict_traffic(input_data: PredictionInput):
     date = input_data.data[0].date
     hour = input_data.data[0].hour
     try:   
-        num_of_cars, avf_speed = predict(region, date, hour)
+        num_of_cars, avg_speed, formated_date = predict(region, date, hour)
         response = {
             "num_of_cars": num_of_cars,
-            "avg_speed": avf_speed
+            "avg_speed": avg_speed
         }
+        save_to_mongodb(region, formated_date, hour, num_of_cars, avg_speed)
         return {'predictions': response} 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
 
 if __name__ == "__main__":
-    download_models()
+    #download_models()
     uvicorn.run(app, host="0.0.0.0", port=3001)
