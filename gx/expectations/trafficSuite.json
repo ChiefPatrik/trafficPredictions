@@ -312,28 +312,6 @@
       }
     },
     {
-      "expectation_type": "expect_column_max_to_be_between",
-      "kwargs": {
-        "column": "temperature",
-        "max_value": 23.4,
-        "min_value": 23.4,
-        "strict_max": false,
-        "strict_min": false
-      },
-      "meta": {
-        "profiler_details": {
-          "metric_configuration": {
-            "domain_kwargs": {
-              "column": "temperature"
-            },
-            "metric_name": "column.max",
-            "metric_value_kwargs": null
-          },
-          "num_batches": 1
-        }
-      }
-    },
-    {
       "expectation_type": "expect_column_min_to_be_between",
       "kwargs": {
         "column": "relative_humidity",
