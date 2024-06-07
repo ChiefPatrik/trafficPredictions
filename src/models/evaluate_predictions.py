@@ -110,37 +110,41 @@ def get_predictions_from_mongo():
 
 # Function to find the index of a row in the dataset that matches the prediction date and hour
 def find_index(traffic_data, prediction):
-    # Convert 'date' column to datetime
+    prediction['hour'] = prediction['hour'] + ":00"
+    # Convert prediction date and hour to datetime and time
+    pred_date = datetime.strptime(prediction['date'], '%d-%m-%Y').date()
+    pred_hour = datetime.strptime(prediction['hour'], '%H:%M:%S').time()
+    # print(f"Prediction Date: {pred_date}")
+    # print(f"Prediction Hour: {pred_hour}")
+
+
+    # FIND THE EXACT MATCH FOR DATE AND HOUR
+    exact_match = traffic_data[(traffic_data['date'] == prediction['date']) & (traffic_data['hour'] == prediction['hour'])]
+    #print("\nExact Match:\n", exact_match)
+    if not exact_match.empty:
+        return exact_match.index[0]
+
+
+    # FIND ROWS WITH MATCHING DATE AND CLOSEST HOUR    
     traffic_data['date'] = pd.to_datetime(traffic_data['date'], format='%d-%m-%Y')
 
     # Clean and convert 'hour' column to time
     traffic_data['hour'] = traffic_data['hour'].str.strip()
-    traffic_data['hour'] = pd.to_datetime(traffic_data['hour'], format='%H:%M', errors='coerce').dt.time
-
-    pred_date = datetime.strptime(prediction['date'], '%d-%m-%Y').date()
-    pred_hour = datetime.strptime(prediction['hour'], '%H:%M').time()
-
-    print(f"Prediction Date: {pred_date}")
-    print(f"Prediction Hour: {pred_hour}")
-    print("\nTraffic data:\n", traffic_data["date"])
-
-    # Find the exact match for date and hour
-    exact_match = traffic_data[(traffic_data['date'] == pred_date) & (traffic_data['hour'] == pred_hour)]
-    print("\nExact Match:\n", exact_match)
-
-    if not exact_match.empty:
-        return exact_match.index[0]
+    traffic_data['hour'] = pd.to_datetime(traffic_data['hour'], format='%H:%M:%S', errors='coerce').dt.time
 
     # Find the rows with the matching date
-    date_match = traffic_data[traffic_data['date'] == pred_date]
-    print("\nDate Match:\n", date_match)
+    date_match = traffic_data[traffic_data['date'] == prediction['date']]
+    #print("\nDate Match:\n", date_match)
 
     if date_match.empty:
         return "No matching date found."
 
+    # Drop rows with NaT (invalid time values)
+    date_match = date_match.dropna(subset=['hour'])
+
     # Find the closest hour
     closest_hour = date_match.iloc[(date_match['hour'].apply(lambda x: abs(datetime.combine(pred_date, x) - datetime.combine(pred_date, pred_hour))).argsort())].iloc[0]
-    print("\nClosest Hour Match:\n", closest_hour)
+    #print("\nClosest Hour Match:\n", closest_hour)
 
     return closest_hour.name
 
@@ -207,44 +211,44 @@ def evaluate_speed_prediction(traffic_data, index, prediction):
 
 def main():
     #download_models()
-    #predictions = get_predictions_from_mongo()
-    predictions = [
-        {
-            "region": "Ljubljana",
-            "date": "02-06-2024",
-            "hour": "15:00",
-            "num_of_cars": 180,
-            "avg_speed": 88
-        },
-        {
-            "region": "Vransko",
-            "date": "03-06-2024",
-            "hour": "14:00",
-            "num_of_cars": 190,
-            "avg_speed": 92
-        },
-        {
-            "region": "Kozina",
-            "date": "02-06-2024",
-            "hour": "13:00",
-            "num_of_cars": 210,
-            "avg_speed": 89
-        },
-        {
-            "region": "Maribor",
-            "date": "01-06-2024",
-            "hour": "12:00",
-            "num_of_cars": 195,
-            "avg_speed": 91
-        },
-        {
-            "region": "Vransko",
-            "date": "29-05-2024",
-            "hour": "11:00",
-            "num_of_cars": 202,
-            "avg_speed": 90
-        }
-    ]
+    predictions = get_predictions_from_mongo()
+    # predictions = [
+    #     {
+    #         "region": "Ljubljana",
+    #         "date": "02-06-2024",
+    #         "hour": "15:00",
+    #         "num_of_cars": 180,
+    #         "avg_speed": 88
+    #     },
+    #     {
+    #         "region": "Vransko",
+    #         "date": "03-06-2024",
+    #         "hour": "14:00",
+    #         "num_of_cars": 190,
+    #         "avg_speed": 92
+    #     },
+    #     {
+    #         "region": "Kozina",
+    #         "date": "02-06-2024",
+    #         "hour": "13:00",
+    #         "num_of_cars": 210,
+    #         "avg_speed": 89
+    #     },
+    #     {
+    #         "region": "Maribor",
+    #         "date": "01-06-2024",
+    #         "hour": "12:00",
+    #         "num_of_cars": 195,
+    #         "avg_speed": 91
+    #     },
+    #     {
+    #         "region": "Vransko",
+    #         "date": "29-05-2024",
+    #         "hour": "11:00",
+    #         "num_of_cars": 202,
+    #         "avg_speed": 90
+    #     }
+    # ]
 
     for prediction in predictions:
         region = prediction['region']
@@ -256,12 +260,13 @@ def main():
 
         # Find the index of the row that matches the "date" and "hour" from the prediction
         index = find_index(traffic_data, prediction)
-        #print("Index: ", index)
         if index == "No matching date found.":
-            print(f"Did not find the actual value of prediction for {region} on {prediction['date']} in dataset.")
+            print(f"Did not find the actual value of prediction for {region} on {prediction['date']} at {prediction['hour']} in dataset.")
             continue
-        #evaluate_cars_prediction(traffic_data, index, prediction)
-        #evaluate_speed_prediction(traffic_data, index, prediction)
+        else:
+            print("Index: ", index)
+        evaluate_cars_prediction(traffic_data, index, prediction)
+        evaluate_speed_prediction(traffic_data, index, prediction)
 
 
 if __name__ == "__main__":
