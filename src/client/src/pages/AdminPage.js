@@ -36,7 +36,7 @@ function AdminPage() {
 
     if (city !== '') {
       try {
-        const response = await fetch('http://localhost:3001/traffic/evaluation/', {
+        const response = await fetch(`${process.env.REACT_APP_PREDICTION_API_URL}/traffic/evaluation/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

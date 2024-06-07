@@ -101,7 +101,7 @@ const PredictionsPage = () => {
     };
 
     // Send POST request
-    fetch('http://localhost:3001/traffic/predict', {
+    fetch(`${process.env.REACT_APP_PREDICTION_API_URL}/traffic/predict`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

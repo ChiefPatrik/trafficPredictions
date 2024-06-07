@@ -573,5 +573,5 @@ async def evaluate_models(input_data: MlflowInput):
 
 
 if __name__ == "__main__":
-    #download_models()
+    download_models()
     uvicorn.run(app, host="0.0.0.0", port=3001)
