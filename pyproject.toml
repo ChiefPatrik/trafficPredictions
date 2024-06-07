@@ -26,6 +26,7 @@ onnxruntime = "^1.18.0"
 onnx = "^1.16.1"
 tensorflow = "^2.16.1"
 dagshub = "^0.3.27"
+pytest = "^8.2.2"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -210,7 +210,7 @@ def evaluate_speed_prediction(traffic_data, index, prediction):
     # mlflow.end_run()
 
 def main():
-    #download_models()
+    download_models()
     predictions = get_predictions_from_mongo()
     # predictions = [
     #     {
@@ -264,7 +264,7 @@ def main():
             print(f"Did not find the actual value of prediction for {region} on {prediction['date']} at {prediction['hour']} in dataset.")
             continue
         else:
-            print("Index: ", index)
+            print("Match index:", index)
         evaluate_cars_prediction(traffic_data, index, prediction)
         evaluate_speed_prediction(traffic_data, index, prediction)
 
