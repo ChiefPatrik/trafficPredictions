@@ -6,11 +6,11 @@ const Header = () => {
     <header className="bg-gray-300 text-black p-4 shadow-md fixed w-full top-0 z-20 border border-gray-200 h-16">
       <div className="container mx-auto flex justify-between items-center">
         <nav className="flex justify-between w-full">
-          <div className='hover:bg-gray-500 w-1/2 h-1/2'>
+          {/* <div className='hover:bg-gray-500 w-1/2 h-1/2'> */}
             <Link to="/" className="hover:underline flex-1 text-center">
               PREDICTIONS
             </Link>
-          </div>
+          {/* </div> */}
 
           <Link to="/admin" className="hover:underline flex-1 text-center">
             ADMIN PANEL

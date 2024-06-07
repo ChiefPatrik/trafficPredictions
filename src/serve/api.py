@@ -311,6 +311,142 @@ def save_to_mongodb(region, date, hour, num_of_cars, avg_speed):
     collection.insert_one(data_dict)
     print("Input data saved to MongoDB!")
 
+# Function for getting 'num_of_cars' evaluation info from MLflow
+def get_cars_evaluation_info(region):
+    client = MlflowClient()
+
+    # GET THE TRAIN RUN PARAMS
+    run_name_pattern = f"{region}_train_cars_run"
+    experiment_name = f"{region}_train_cars_exp"
+
+    # Search for runs that match the run name pattern
+    experiment_id = client.get_experiment_by_name(experiment_name).experiment_id
+    runs = client.search_runs(
+        experiment_ids=experiment_id,
+        filter_string=f"tags.mlflow.runName LIKE '%{run_name_pattern}%'",
+        order_by=["start_time DESC"],
+        max_results=25
+    )
+
+    # Get the latest 20 train run metrics
+    metrics = []
+    for run in runs:
+        if run.data.metrics:
+            metrics.append(run.data.metrics)
+    
+    # Get the latest train run parameters
+    if runs:
+        latest_run = runs[0]
+        train_obj = {
+            "run_id": latest_run.info.run_id,
+            "start_time": latest_run.info.start_time,
+            "status": latest_run.info.status,
+            "metrics": latest_run.data.metrics,
+            "params": latest_run.data.params,
+            "tags": latest_run.data.tags,
+            "artifact_uri": latest_run.info.artifact_uri
+        }
+        params = train_obj["params"]
+
+        # GET THE LATEST EVALUATION RUN METRICS
+        run_name_pattern = f"{region}_eval_cars_run"
+        experiment_name = f"{region}_eval_cars_exp"
+
+        # Search for runs that match the run name pattern
+        experiment_id = client.get_experiment_by_name(experiment_name).experiment_id
+        runs = client.search_runs(
+            experiment_ids=experiment_id,
+            filter_string=f"tags.mlflow.runName LIKE '%{run_name_pattern}%'",
+            order_by=["start_time DESC"],
+            max_results=25
+        )
+
+        # Get the latest evaluation run
+        if runs:
+            latest_run = runs[0]
+            eval_obj = {
+                "run_id": latest_run.info.run_id,
+                "start_time": latest_run.info.start_time,
+                "status": latest_run.info.status,
+                "metrics": latest_run.data.metrics,
+                "params": latest_run.data.params,
+                "tags": latest_run.data.tags,
+                "artifact_uri": latest_run.info.artifact_uri
+            }
+            latest_eval_metrics = eval_obj["metrics"]
+
+            return params, metrics, latest_eval_metrics
+    else:
+        return None
+
+# Function for getting 'avg_speed' evaluation info from MLflow
+def get_speed_evaluation_info(region):
+    client = MlflowClient()
+
+    # GET THE TRAIN RUN PARAMS
+    run_name_pattern = f"{region}_train_speed_run"
+    experiment_name = f"{region}_train_speed_exp"
+
+    # Search for runs that match the run name pattern
+    experiment_id = client.get_experiment_by_name(experiment_name).experiment_id
+    runs = client.search_runs(
+        experiment_ids=experiment_id,
+        filter_string=f"tags.mlflow.runName LIKE '%{run_name_pattern}%'",
+        order_by=["start_time DESC"],
+        max_results=25
+    )
+
+    # Get the latest 20 train run metrics
+    metrics = []
+    for run in runs:
+        if run.data.metrics:
+            metrics.append(run.data.metrics)
+    
+    # Get the latest train run parameters
+    if runs:
+        latest_run = runs[0]
+        train_obj = {
+            "run_id": latest_run.info.run_id,
+            "start_time": latest_run.info.start_time,
+            "status": latest_run.info.status,
+            "metrics": latest_run.data.metrics,
+            "params": latest_run.data.params,
+            "tags": latest_run.data.tags,
+            "artifact_uri": latest_run.info.artifact_uri
+        }
+        params = train_obj["params"]
+
+        # GET THE LATEST EVALUATION RUN METRICS
+        run_name_pattern = f"{region}_eval_speed_run"
+        experiment_name = f"{region}_eval_speed_exp"
+
+        # Search for runs that match the run name pattern
+        experiment_id = client.get_experiment_by_name(experiment_name).experiment_id
+        runs = client.search_runs(
+            experiment_ids=experiment_id,
+            filter_string=f"tags.mlflow.runName LIKE '%{run_name_pattern}%'",
+            order_by=["start_time DESC"],
+            max_results=25
+        )
+
+        # Get the latest evaluation run
+        if runs:
+            latest_run = runs[0]
+            eval_obj = {
+                "run_id": latest_run.info.run_id,
+                "start_time": latest_run.info.start_time,
+                "status": latest_run.info.status,
+                "metrics": latest_run.data.metrics,
+                "params": latest_run.data.params,
+                "tags": latest_run.data.tags,
+                "artifact_uri": latest_run.info.artifact_uri
+            }
+            latest_eval_metrics = eval_obj["metrics"]
+
+            return params, metrics, latest_eval_metrics
+    else:
+        return None
+    
 
 # ======================================
 # DIRECT PREDICTION FUNCTIONS
@@ -380,6 +516,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class TrafficData(BaseModel):
     region: str
     date: str
@@ -387,6 +524,14 @@ class TrafficData(BaseModel):
 
 class PredictionInput(BaseModel):
     data: List[TrafficData]
+
+
+class ModelData(BaseModel):
+    region: str
+
+class MlflowInput(BaseModel):
+    data: List[ModelData]
+
 
 @app.post("/traffic/predict/", response_model=dict)
 async def predict_traffic(input_data: PredictionInput):
@@ -403,7 +548,29 @@ async def predict_traffic(input_data: PredictionInput):
         return {'predictions': response} 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+@app.post("/traffic/evaluation/", response_model=dict)
+async def evaluate_models(input_data: MlflowInput):
+    region = input_data.data[0].region
+    try:   
+        params_cars, metrics_cars, latest_eval_metrics_cars = get_cars_evaluation_info(region)
+        params_speed, metrics_speed, latest_eval_metrics_speed = get_speed_evaluation_info(region)
+        response = {
+            "cars_evaluation": {
+                "params": params_cars,
+                "metrics": metrics_cars,
+                "eval_metrics": latest_eval_metrics_cars
+            },
+            "speed_evaluation": {
+                "params": params_speed,
+                "metrics": metrics_speed,
+                "eval_metrics": latest_eval_metrics_speed
+            }
+        }
+        return {'evaluation': response} 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))    
+
 
 if __name__ == "__main__":
     #download_models()

@@ -131,7 +131,7 @@ const PredictionsPage = () => {
 
 
   return (
-    <div className="flex flex-col items-center h-screen w-1/2 flex pt-24">
+    <div className="flex flex-col items-center h-screen w-1/2 mx-auto flex pt-24">
       <h1 className="text-3xl font-bold mb-8">Traffic Predictions</h1>
       <div className="z-10 grid grid-cols-3 gap-4 mb-8">
         <div>
