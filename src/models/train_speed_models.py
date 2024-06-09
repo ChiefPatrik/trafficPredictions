@@ -9,6 +9,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
+import tensorflow_model_optimization as tfmot
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
@@ -97,24 +98,40 @@ def process_data(df):
 
 
 def build_model(input_dim):
+    prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
+
+    # Define the pruning schedule
+    pruning_params = {
+        'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(
+            initial_sparsity=0.2,
+            final_sparsity=0.8,
+            begin_step=0,
+            end_step=1000
+        )
+    }
+
     inputs = tf.keras.Input(shape=(input_dim,))
-    x = Dense(128, activation='relu')(inputs)
+    #x = Dense(128, activation='relu')(inputs)
+    x = prune_low_magnitude(Dense(128, activation='relu'), **pruning_params)(inputs)
     x = BatchNormalization()(x)
     x = Dropout(0.3)(x)
     
-    x = Dense(64, activation='relu')(x)
+    #x = Dense(64, activation='relu')(x)
+    x = prune_low_magnitude(Dense(64, activation='relu'), **pruning_params)(x)
     x = BatchNormalization()(x)
     x = Dropout(0.3)(x)
     
-    x = Dense(32, activation='relu')(x)
+    #x = Dense(32, activation='relu')(x)
+    x = prune_low_magnitude(Dense(32, activation='relu'), **pruning_params)(x)
     x = BatchNormalization()(x)
     x = Dropout(0.3)(x)
     
     outputs = Dense(1, activation='linear')(x)
     
     model = Model(inputs=inputs, outputs=outputs)
-    
-    model.compile(optimizer=Adam(learning_rate=0.01), loss='mse', metrics=['mae', 'mse'])
+    model = tfmot.sparsity.keras.prune_low_magnitude(model, **pruning_params)
+
+    model.compile(optimizer=Adam(learning_rate=0.01), loss='mse', metrics=['mae', 'mse']) 
     return model
 
 # Function for saving the model and scalers to file
@@ -190,9 +207,15 @@ def train_model(region_name, traffic_df, client):
         mlflow.autolog()
         run_id = mlflow.active_run().info.run_id    # For versioning mlflow models
 
+        # Define the pruning callbacks
+        callbacks = [
+            tfmot.sparsity.keras.UpdatePruningStep(),
+            tfmot.sparsity.keras.PruningSummaries(log_dir='./logs')
+        ]
+
         # Build and train model
         model = build_model(X_train.shape[1])
-        train_history = model.fit(X_train, y_train, epochs=40, batch_size=32, validation_split=0.2, verbose=1)
+        train_history = model.fit(X_train, y_train, epochs=40, batch_size=32, validation_split=0.2, verbose=1, callbacks=callbacks)
         predictions = model.predict(X_test)
 
         # Log train metrics to MLflow

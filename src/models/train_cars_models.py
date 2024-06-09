@@ -9,6 +9,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
+import tensorflow_model_optimization as tfmot
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
@@ -116,22 +117,39 @@ def build_model(input_dim):
     
     # model.compile(optimizer='adam', loss='mse', metrics=['mae', 'mse'])
 
+    prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
+
+    # Define the pruning schedule
+    pruning_params = {
+        'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(
+            initial_sparsity=0.2,
+            final_sparsity=0.8,
+            begin_step=0,
+            end_step=1000
+        )
+    }
+
     inputs = tf.keras.Input(shape=(input_dim,))
-    x = Dense(128, activation='relu')(inputs)
+    #x = Dense(128, activation='relu')(inputs)
+    x = prune_low_magnitude(Dense(128, activation='relu'), **pruning_params)(inputs)
     x = BatchNormalization()(x)
     x = Dropout(0.3)(x)
     
-    x = Dense(64, activation='relu')(x)
+    #x = Dense(64, activation='relu')(x)
+    x = prune_low_magnitude(Dense(64, activation='relu'), **pruning_params)(x)
     x = BatchNormalization()(x)
     x = Dropout(0.3)(x)
     
-    x = Dense(32, activation='relu')(x)
+    #x = Dense(32, activation='relu')(x)
+    x = prune_low_magnitude(Dense(32, activation='relu'), **pruning_params)(x)
     x = BatchNormalization()(x)
     x = Dropout(0.3)(x)
     
     outputs = Dense(1, activation='linear')(x)
     
     model = Model(inputs=inputs, outputs=outputs)
+    model = tfmot.sparsity.keras.prune_low_magnitude(model, **pruning_params)
+
     model.compile(optimizer=Adam(learning_rate=0.01), loss='mse', metrics=['mae', 'mse']) 
     
     return model
@@ -209,9 +227,15 @@ def train_model(region_name, traffic_df, client):
         mlflow.autolog()
         run_id = mlflow.active_run().info.run_id    # For versioning mlflow models
 
+        # Define the pruning callbacks
+        callbacks = [
+            tfmot.sparsity.keras.UpdatePruningStep(),
+            tfmot.sparsity.keras.PruningSummaries(log_dir='./logs')
+        ]
+
         # Build and train model
         model = build_model(X_train.shape[1])
-        train_history = model.fit(X_train, y_train, epochs=40, batch_size=32, validation_split=0.2, verbose=1)
+        train_history = model.fit(X_train, y_train, epochs=40, batch_size=32, validation_split=0.2, verbose=1, callbacks=callbacks)
         predictions = model.predict(X_test)
 
         # Log train metrics to MLflow
@@ -226,25 +250,6 @@ def train_model(region_name, traffic_df, client):
         onnx_model, _ = tf2onnx.convert.from_keras(model=model, input_signature=input_signature, opset=13)  
         
         save_model_scalers(region_name, onnx_model, features_scaler, target_scaler)
-
-        # onnx.save_model(onnx_model, os.path.join(models_dir, region_name, "cars", "cars_model_first.onnx"))
-        # onnx_model = rt.InferenceSession(os.path.join(models_dir, region_name, "cars", "cars_model_first.onnx"))
-        
-        # # Inspect the input and output names of the ONNX model
-        # input_names = [input.name for input in onnx_model.get_inputs()]
-        # output_names = [output.name for output in onnx_model.get_outputs()]
-        # print("Input names:", input_names)
-        # print("Output names:", output_names)
-        # # Use the correct input name for predictions
-        # input_name = input_names[0]  # Assuming the first input is the one we want
-        # output_name = output_names[0]  # Assuming the first output is the one we want
-        # # Run the model prediction
-        # pred_onx = onnx_model.run([output_name], {input_name: X_test.astype(np.float32)})[0]      
-
-        # input_name = onnx_model.get_inputs()[0].name
-        # output_name = onnx_model.get_outputs()[0].name
-        # pred_onx = onnx_model.run([output_name], {input_name: X_test.astype(np.float32)})[0]
-        # print("ONNX model prediction: ", pred_onx[:5])
 
         # Log the model to MLflow
         registered_model = mlflow.onnx.log_model(onnx_model=onnx_model, 
@@ -323,6 +328,7 @@ def main():
 
             # Build and train the model for the region
             train_model(region_name, traffic_df, client)
+            break
 
     # for region in region_mapping.keys():
     #     client.delete_registered_model(name=f"{region}_cars_model")
