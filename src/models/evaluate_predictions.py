@@ -165,21 +165,21 @@ def evaluate_cars_prediction(traffic_data, index, prediction):
     y_pred = np.array(y_pred).reshape(-1, 1)
     y_test = y_test.reshape(-1, 1)
 
-    # mlflow.set_experiment(f"{traffic_data['region']}_cars_predictions_exp")
-    # with mlflow.start_run(run_name=f"{traffic_data['region']}_cars_predictions_run"):
-    y_pred_inv = target_scaler.inverse_transform(y_pred)
-    y_test_inv = target_scaler.inverse_transform(y_test)
+    mlflow.set_experiment(f"{traffic_data['region']}_cars_predictions_exp")
+    with mlflow.start_run(run_name=f"{traffic_data['region']}_cars_predictions_run"):
+        y_pred_inv = target_scaler.inverse_transform(y_pred)
+        y_test_inv = target_scaler.inverse_transform(y_test)
 
-    # Calculating metrics
-    mse = mean_squared_error(y_test_inv, y_pred_inv)
-    mae = mean_absolute_error(y_test_inv, y_pred_inv)
-    ev = explained_variance_score(y_test_inv, y_pred_inv)  
-    print(f"MSE: {mse}, MAE: {mae}, EVS: {ev}\n")
+        # Calculating metrics
+        mse = mean_squared_error(y_test_inv, y_pred_inv)
+        mae = mean_absolute_error(y_test_inv, y_pred_inv)
+        ev = explained_variance_score(y_test_inv, y_pred_inv)  
+        print(f"MSE: {mse}, MAE: {mae}, EVS: {ev}\n")
 
-    #     mlflow.log_metric("MAE", mae)
-    #     mlflow.log_metric("MSE", mse)
-    #     mlflow.log_metric("EVS", ev)
-    # mlflow.end_run()
+        mlflow.log_metric("MAE", mae)
+        mlflow.log_metric("MSE", mse)
+        mlflow.log_metric("EVS", ev)
+    mlflow.end_run()
 
 # Function for evaluating "avg_speed" predictions with actual values and logging metrics to MLflow
 def evaluate_speed_prediction(traffic_data, index, prediction):
@@ -193,21 +193,21 @@ def evaluate_speed_prediction(traffic_data, index, prediction):
     y_pred = np.array(y_pred).reshape(-1, 1)
     y_test = y_test.reshape(-1, 1)
 
-    # mlflow.set_experiment(f"{traffic_data['region']}_speed_predictions_exp")
-    # with mlflow.start_run(run_name=f"{traffic_data['region']}_speed_predictions_run"):
-    y_pred_inv = target_scaler.inverse_transform(y_pred)
-    y_test_inv = target_scaler.inverse_transform(y_test)
+    mlflow.set_experiment(f"{traffic_data['region']}_speed_predictions_exp")
+    with mlflow.start_run(run_name=f"{traffic_data['region']}_speed_predictions_run"):
+        y_pred_inv = target_scaler.inverse_transform(y_pred)
+        y_test_inv = target_scaler.inverse_transform(y_test)
 
-    # Calculating metrics
-    mse = mean_squared_error(y_test_inv, y_pred_inv)
-    mae = mean_absolute_error(y_test_inv, y_pred_inv)
-    ev = explained_variance_score(y_test_inv, y_pred_inv)
-    print(f"MSE: {mse}, MAE: {mae}, EVS: {ev}\n")
+        # Calculating metrics
+        mse = mean_squared_error(y_test_inv, y_pred_inv)
+        mae = mean_absolute_error(y_test_inv, y_pred_inv)
+        ev = explained_variance_score(y_test_inv, y_pred_inv)
+        print(f"MSE: {mse}, MAE: {mae}, EVS: {ev}\n")
 
-    #     mlflow.log_metric("MAE", mae)
-    #     mlflow.log_metric("MSE", mse)
-    #     mlflow.log_metric("EVS", ev)
-    # mlflow.end_run()
+        mlflow.log_metric("MAE", mae)
+        mlflow.log_metric("MSE", mse)
+        mlflow.log_metric("EVS", ev)
+    mlflow.end_run()
 
 def main():
     download_models()
