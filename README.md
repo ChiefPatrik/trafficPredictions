@@ -19,7 +19,7 @@ It contains everything from scripts for data processing, data itself, data valid
 *Step 4 (src/client)*: create **.env** file with the following variables 
  * REACT_APP_PREDICTION_API_URL=http://localhost:3001
 
-*Step 5 (src/serve; python environment)*: **poetry run python pi.py** OR *(root; python environment)*: **docker build -t traffic_api .**  
+*Step 5 (src/serve; python environment)*: **poetry run python api.py** OR *(root; python environment)*: **docker build -t traffic_api .**  
 *Step 6 (src/client)*: **npm run start** OR *(src/client)*: **docker build -t traffic_client .**  
 
 ![image](ClientExample.png)
