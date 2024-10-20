@@ -100,55 +100,37 @@ def process_data(df):
 
 
 def build_model(input_dim):
-    # model = Sequential()
-    # model.add(Dense(128, input_dim=input_dim, activation='relu'))
-    # model.add(BatchNormalization())
-    # model.add(Dropout(0.3))
-    
-    # model.add(Dense(64, activation='relu'))
-    # model.add(BatchNormalization())
-    # model.add(Dropout(0.3))
-    
-    # model.add(Dense(32, activation='relu'))
-    # model.add(BatchNormalization())
-    # model.add(Dropout(0.3))
-    
-    # model.add(Dense(1, activation='linear'))
-    
-    # model.compile(optimizer='adam', loss='mse', metrics=['mae', 'mse'])
-
-    prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
-
+    # prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
     # Define the pruning schedule
-    pruning_params = {
-        'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(
-            initial_sparsity=0.2,
-            final_sparsity=0.8,
-            begin_step=0,
-            end_step=1000
-        )
-    }
+    # pruning_params = {
+    #     'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(
+    #         initial_sparsity=0.2,
+    #         final_sparsity=0.8,
+    #         begin_step=0,
+    #         end_step=1000
+    #     )
+    # }
 
     inputs = tf.keras.Input(shape=(input_dim,))
-    #x = Dense(128, activation='relu')(inputs)
-    x = prune_low_magnitude(Dense(128, activation='relu'), **pruning_params)(inputs)
+    x = Dense(128, activation='relu')(inputs)
+    #x = prune_low_magnitude(Dense(128, activation='relu'), **pruning_params)(inputs)
     x = BatchNormalization()(x)
     x = Dropout(0.3)(x)
     
-    #x = Dense(64, activation='relu')(x)
-    x = prune_low_magnitude(Dense(64, activation='relu'), **pruning_params)(x)
+    x = Dense(64, activation='relu')(x)
+    #x = prune_low_magnitude(Dense(64, activation='relu'), **pruning_params)(x)
     x = BatchNormalization()(x)
     x = Dropout(0.3)(x)
     
-    #x = Dense(32, activation='relu')(x)
-    x = prune_low_magnitude(Dense(32, activation='relu'), **pruning_params)(x)
+    x = Dense(32, activation='relu')(x)
+    #x = prune_low_magnitude(Dense(32, activation='relu'), **pruning_params)(x)
     x = BatchNormalization()(x)
     x = Dropout(0.3)(x)
     
     outputs = Dense(1, activation='linear')(x)
     
     model = Model(inputs=inputs, outputs=outputs)
-    model = tfmot.sparsity.keras.prune_low_magnitude(model, **pruning_params)
+    #model = tfmot.sparsity.keras.prune_low_magnitude(model, **pruning_params)
 
     model.compile(optimizer=Adam(learning_rate=0.01), loss='mse', metrics=['mae', 'mse']) 
     
