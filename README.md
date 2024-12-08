@@ -4,10 +4,10 @@ It contains everything from scripts for data processing, data itself, data valid
 
 # SET UP & USE
 *Precondition*: installed poetry in python environment & installed npm  
-*Note*: values of .env variables aren't given here, since it's a security issue  
+*Note*: values of .env variables, keys and tokens aren't given here, since it's a security violation.   
 *Step 1 (root; python environment)*: **poetry install**  
 *Step 2 (root)*: create **.env** file with the following variables  
-  * NAP_USERNAME
+  * NAP_USERNAME   
   * NAP_PASSWORD
   * MLFLOW_TRACKING_USERNAME
   * MLFLOW_TRACKING_PASSWORD
@@ -19,8 +19,11 @@ It contains everything from scripts for data processing, data itself, data valid
 *Step 4 (src/client)*: create **.env** file with the following variables 
  * REACT_APP_PREDICTION_API_URL=http://localhost:3001
 
-*Step 5 (src/serve; python environment)*: **poetry run api.py** OR *(root; python environment)*: **docker build -t traffic_api .**  
-*Step 6 (src/client)*: **npm run start** OR *(src/client)*: **docker build -t traffic_client .**  
+*Step 5 (root; python environment)*: **dvc remote modify origin --local access_key_id <your_token>**  
+*Step 6 (root; python environment)*: **dvc remote modify origin --local secret_access_key <your_key>**  
+*Step 7 (root; python environment)*: **dvc pull**  
+*Step 8 (src/serve; python environment)*: **poetry run python api.py** OR *(root; python environment)*: **docker build -t traffic_api .**  
+*Step 9 (src/client)*: **npm run start** OR *(src/client)*: **docker build -t traffic_client .**  
 
 ![image](ClientExample.png)
 
