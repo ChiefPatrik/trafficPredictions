@@ -183,7 +183,7 @@ const PredictionsPage = () => {
         ))}
       </MapContainer>
       
-      <button onClick={handlePredictTraffic} className="mt-8 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+      <button data-testid="predictBtn" onClick={handlePredictTraffic} className="mt-8 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
         Predict traffic
       </button>
       <div className="mt-4"></div>
@@ -192,8 +192,8 @@ const PredictionsPage = () => {
         <label id="speed_prediction_title" className="invisible w-32 px-2 py-1 mx-2 ">Average speed</label>
       </div>
       <div className="flex justify-center">
-        <label id="cars_prediction" className="invisible w-32 px-2 py-1 mx-2 border rounded flex justify-center items-center"></label>
-        <label id="speed_prediction" className="invisible w-32 px-2 py-1 mx-2 border rounded flex justify-center items-center"></label>
+        <label data-testid="cars_prediction" id="cars_prediction" className="invisible w-32 px-2 py-1 mx-2 border rounded flex justify-center items-center"></label>
+        <label data-testid="speed_prediction" id="speed_prediction" className="invisible w-32 px-2 py-1 mx-2 border rounded flex justify-center items-center"></label>
       </div>
     </div>
   );

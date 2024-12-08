@@ -46,3 +46,17 @@ jobs:
     - run: poetry install --no-interaction
 
     - run: poetry run pytest
+
+    # Node.js setup and JavaScript testing
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+
+    - name: Install dependencies for client tests
+      working-directory: ./src/client
+      run: npm install
+
+    - name: Run JavaScript tests
+      working-directory: ./src/client
+      run: npm test -- --watchAll=false
